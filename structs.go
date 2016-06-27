@@ -3,6 +3,7 @@ package structs
 
 import (
 	"fmt"
+	"log"
 
 	"reflect"
 )
@@ -80,21 +81,37 @@ func New(s interface{}) *Struct {
 // fields will be neglected.
 func (s *Struct) Map() map[string]interface{} {
 	out := make(map[string]interface{})
-	s.FillMap(out)
+	s.FillMap(out, nil)
+	return out
+}
+
+func (s *Struct) FilterMap(args ...string) map[string]interface{} {
+	out := make(map[string]interface{})
+	s.FillMap(out, args)
 	return out
 }
 
 // FillMap is the same as Map. Instead of returning the output, it fills the
 // given map.
-func (s *Struct) FillMap(out map[string]interface{}) {
+func (s *Struct) FillMap(out map[string]interface{}, args []string) {
 	if out == nil {
 		return
 	}
 
 	fields := s.structFields()
 
+INARGS:
 	for _, field := range fields {
 		name := field.Name
+		log.Println(args, name)
+		for _, v := range args {
+			if v == name {
+				log.Println(v, name)
+
+				continue INARGS
+			}
+		}
+
 		val := s.value.FieldByName(name)
 		isSubStruct := false
 		var finalVal interface{}
@@ -448,10 +465,14 @@ func Map(s interface{}) map[string]interface{} {
 	return New(s).Map()
 }
 
+func FilterMap(s interface{}, args ...string) map[string]interface{} {
+	return New(s).FilterMap(args...)
+}
+
 // FillMap is the same as Map. Instead of returning the output, it fills the
 // given map.
 func FillMap(s interface{}, out map[string]interface{}) {
-	New(s).FillMap(out)
+	New(s).FillMap(out, nil)
 }
 
 // Values converts the given struct to a []interface{}. For more info refer to
