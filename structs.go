@@ -3,9 +3,9 @@ package structs
 
 import (
 	"fmt"
-	"log"
 
 	"reflect"
+	"strings"
 )
 
 var (
@@ -102,12 +102,14 @@ func (s *Struct) FillMap(out map[string]interface{}, args []string) {
 
 INARGS:
 	for _, field := range fields {
+		tag := field.Tag.Get("json")
+		if strings.Contains(tag, "-") {
+			continue INARGS
+		}
+
 		name := field.Name
-		log.Println(args, name)
 		for _, v := range args {
 			if v == name {
-				log.Println(v, name)
-
 				continue INARGS
 			}
 		}
